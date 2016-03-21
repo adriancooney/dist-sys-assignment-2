@@ -10,7 +10,7 @@ public class MapReducePooled {
     public static void main(String[] args) {
 
         List<File> fileList = new LinkedList<File>();
-        List<Map<String,String>> input1 = new LinkedList<Map<String,String>>();
+        List<Map<String,String>> cmdLineInput = new LinkedList<Map<String,String>>();
         Map<String, String> test = new HashMap<String, String>();
 
         //File directories are passed from command line and Files are created.
@@ -47,7 +47,7 @@ public class MapReducePooled {
             read.close();
 
             test.put(name, content);
-            input1.add(test);
+            cmdLineInput.add(test);
             test.clear();
         }
 
