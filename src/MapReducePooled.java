@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -9,82 +10,16 @@ public class MapReducePooled {
 
     public static void main(String[] args) {
 
-        List<File> fileList = new LinkedList<File>();
-        List<Map<String,String>> cmdLineInput = new LinkedList<Map<String,String>>();
-        Map<String, String> test = new HashMap<String, String>();
-
-        //File directories are passed from command line and Files are created.
-        //Each file is then mapped by following the below example with
-        //"file1.txt", "foo foo bar cat dog dog" etc.
-        //Map is added to a List of Maps.
-        if(args.length>0)
-        {
-            for(int i=0;i<args.length;i++)
-            {
-                File file = new File(args[i]);
-                fileList.add(file);
-            }
-        }
-        //read the content of each file
-        //into one string
-        //Map the File to the string.
-        for(File file : fileList)
-        {
-            String content = null ;
-            String name = file.getName();
-            String newLine = System.getProperty("line.separator");
-            Scanner read = null;
-            try {
-                read = new Scanner(file);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
-            }
-            read.useDelimiter(newLine);
-            while (read.hasNext())
-            {
-                content = read.next();
-            }
-            read.close();
-
-            test.put(name, content);
-            cmdLineInput.add(test);
-            test.clear();
+        // Read in some data
+        final HashMap<String, String> input;
+        try {
+            input = DataReader.readData();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return;
         }
 
-        // the problem:
-
-        // from here (INPUT)
-
-        // "file1.txt" => "foo foo bar cat dog dog"
-        // "file2.txt" => "foo house cat cat dog"
-        // "file3.txt" => "foo foo foo bird"
-
-        // we want to go to here (OUTPUT)
-
-        // "foo" => { "file1.txt" => 2, "file3.txt" => 3, "file2.txt" => 1 }
-        // "bar" => { "file1.txt" => 1 }
-        // "cat" => { "file2.txt" => 2, "file1.txt" => 1 }
-        // "dog" => { "file2.txt" => 1, "file1.txt" => 2 }
-        // "house" => { "file2.txt" => 1 }
-        // "bird" => { "file3.txt" => 1 }
-
-        // in plain English we want to
-
-        // Given a set of files with contents
-        // we want to index them by word
-        // so I can return all files that contain a given word
-        // together with the number of occurrences of that word
-        // without any sorting
-
-        ////////////
-        // INPUT:
-        ///////////
-
-        Map<String, String> input = new HashMap<String, String>();
-        input.put("file1.txt", "foo foo bar cat dog dog");
-        input.put("file2.txt", "foo house cat cat dog");
-        input.put("file3.txt", "foo foo foo bird");
-
+        MapReducePooled.timeStart();
 
         // APPROACH #3: Distributed MapReduce
         final Map<String, Map<String, Integer>> output = new HashMap<String, Map<String, Integer>>();
@@ -158,6 +93,8 @@ public class MapReducePooled {
         executor.shutdown();
         while(!executor.isTerminated());
 
+        MapReducePooled.timeStop();
+        System.out.println(String.format("Execution time: %dns", MapReducePooled.duration));
         System.out.println(output);
     }
 
@@ -213,6 +150,16 @@ public class MapReducePooled {
         public String toString() {
             return "[\"" + word + "\",\"" + file + "\"]";
         }
+    }
+
+    static long startTime, stopTime, duration;
+    public static void timeStart() {
+        startTime = System.nanoTime();
+    }
+
+    public static void timeStop() {
+        stopTime = System.nanoTime();
+        duration = stopTime - startTime;
     }
 } 
 
