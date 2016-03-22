@@ -12,7 +12,9 @@ import java.util.concurrent.Executors;
 
 public class MapReducePooledThreadSafe {
 
-    private static Map readFile(File file) throws IOException {
+
+    private static String[] readFile(File file) throws IOException {
+
         Map<String, String> input = new HashMap<String, String>();
         StringBuilder fileContents = new StringBuilder((int)file.length());
         String filename = file.getName();
@@ -26,33 +28,35 @@ public class MapReducePooledThreadSafe {
         } finally {
             scanner.close();
         }
-        input.put(filename,fileContents.toString());
-        return input;
+        return new String[]{ filename, fileContents.toString() };
+
     }
 
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws IOException {
+        long startTime = System.currentTimeMillis();
         List<File> fileList = new LinkedList<File>();
         List<Map<String,String>> cmdLineInput = new LinkedList<Map<String,String>>();
         Map<String, String> test = new HashMap<String, String>();
 
         File file1 = new File(args[0]);
-        //File file2 = new File(args[1]);
-        //File file3 = new File(args[2]);
+        File file2 = new File(args[1]);
+        File file3 = new File(args[2]);
 
-        Map<String, String> input1 = new HashMap<String, String>();
-        try {
-            input1 = readFile(file1);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Map<String, String> input2 = new HashMap<String, String>();
-        Map<String, String> input3 = new HashMap<String, String>();
+        String[] map = readFile(file1);
+        String[] map2 = readFile(file2);
+        String[] map3 = readFile(file3);
 
-
-
-
+        String name = map[0];
+        String content = map[1];
+        Map<String, String> input = new HashMap<String, String>();
+        input.put(name,content);
+        String name2 = map2[0];
+        String content2 = map2[1];
+        input.put(name2,content2);
+        String name3 = map3[0];
+        String content3 = map3[1];
+        input.put(name3,content3);
 
         // APPROACH #3: Distributed MapReduce
         final Map<String, Map<String, Integer>> output = new ConcurrentHashMap<String, Map<String,Integer>>();
@@ -71,7 +75,7 @@ public class MapReducePooledThreadSafe {
             }
         };
 
-        Iterator<Map.Entry<String, String>> inputIter = input1.entrySet().iterator();
+        Iterator<Map.Entry<String, String>> inputIter = input.entrySet().iterator();
         while(inputIter.hasNext()) {
             Map.Entry<String, String> entry = inputIter.next();
             final String file = entry.getKey();
@@ -125,8 +129,11 @@ public class MapReducePooledThreadSafe {
         // wait for mapping phase to be over:
         executor.shutdown();
         while(!executor.isTerminated());
+        long endTime   = System.currentTimeMillis();
+        long totalTime = endTime - startTime;
 
         System.out.println(output);
+        System.out.println(totalTime);
     }
 
     public interface MapCallback<E, V> {
