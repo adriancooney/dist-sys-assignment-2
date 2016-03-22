@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.*;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -6,6 +8,48 @@ import java.util.concurrent.Executors;
 public class MapReducePooled {
 
     public static void main(String[] args) {
+
+        List<File> fileList = new LinkedList<File>();
+        List<Map<String,String>> cmdLineInput = new LinkedList<Map<String,String>>();
+        Map<String, String> test = new HashMap<String, String>();
+
+        //File directories are passed from command line and Files are created.
+        //Each file is then mapped by following the below example with
+        //"file1.txt", "foo foo bar cat dog dog" etc.
+        //Map is added to a List of Maps.
+        if(args.length>0)
+        {
+            for(int i=0;i<args.length;i++)
+            {
+                File file = new File(args[i]);
+                fileList.add(file);
+            }
+        }
+        //read the content of each file
+        //into one string
+        //Map the File to the string.
+        for(File file : fileList)
+        {
+            String content = null ;
+            String name = file.getName();
+            String newLine = System.getProperty("line.separator");
+            Scanner read = null;
+            try {
+                read = new Scanner(file);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+            read.useDelimiter(newLine);
+            while (read.hasNext())
+            {
+                content = read.next();
+            }
+            read.close();
+
+            test.put(name, content);
+            cmdLineInput.add(test);
+            test.clear();
+        }
 
         // the problem:
 
