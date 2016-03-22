@@ -1,4 +1,5 @@
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,8 +35,13 @@ public class MapReduce {
         		String content = null ;
         		String name = file.getName();
         		String newLine = System.getProperty("line.separator");
-        		Scanner read = new Scanner(file);
-        		read.useDelimiter(newLine);
+                    Scanner read = null;
+                    try {
+                            read = new Scanner(file);
+                    } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                    }
+                    read.useDelimiter(newLine);
         		while (read.hasNext())
         		{
         			content = read.next();
